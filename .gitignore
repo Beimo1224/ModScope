@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local scan/test artifacts
+.tmp/
+.tmp_*
+.tests/
+tests/.work/
+.qa_web/
+.chrome-*/
+.uploads/
+*.log
+build/
+dist/
+
+# Release archives belong on GitHub Releases, not in the source tree
+ModScope-*.zip

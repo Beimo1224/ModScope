@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="ModScope：我的世界全版本 MOD 冲突查找器。本地静态分析 Forge、NeoForge、Fabric、Quilt 与 LiteLoader 的依赖、版本、类与 Mixin 冲突。">
+  <title>ModScope · 我的世界 MOD 冲突查找器</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-scan" viewBox="0 0 24 24">
+      <path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/>
+      <path d="M7 12h10M12 7v10"/>
+    </symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24">
+      <path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h3l2 2h7a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 18 19H6a2.5 2.5 0 0 1-2.5-2.5Z"/>
+      <path d="M4 10h16"/>
+    </symbol>
+    <symbol id="i-file" viewBox="0 0 24 24">
+      <path d="M6 3h7l5 5v13H6z"/>
+      <path d="M13 3v5h5M9 13h6M9 17h6"/>
+    </symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24">
+      <path d="m12 2.8 8 4.6v9.2l-8 4.6-8-4.6V7.4z"/>
+      <path d="m4 7.4 8 4.6 8-4.6M12 12v9.2"/>
+    </symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24">
+      <path d="M5 12h14M13 6l6 6-6 6"/>
+    </symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24">
+      <path d="m6 9 6 6 6-6"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24">
+      <path d="m6 6 12 12M18 6 6 18"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12 4.2 4.2L19 6.5"/>
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24">
+      <path d="M12 3.5 21 20H3z"/>
+      <path d="M12 9v5M12 17.3v.2"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 3 20 6v5c0 5-3.4 8.3-8 10-4.6-1.7-8-5-8-10V6z"/>
+      <path d="m8.5 12 2.4 2.4 4.8-5"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24">
+      <path d="M20 11a8 8 0 1 0-2.2 6.3M20 4v7h-7"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="10.5" cy="10.5" r="6.5"/>
+      <path d="m16 16 4.5 4.5"/>
+    </symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24">
+      <path d="m12 3 9 4.5-9 4.5-9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/>
+    </symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24">
+      <rect x="8" y="8" width="12" height="12" rx="2"/>
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>
+    </symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24">
+      <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/>
+    </symbol>
+    <symbol id="i-help" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M9.8 9a2.3 2.3 0 1 1 3.1 2.2c-.6.3-.9.8-.9 1.5v.5M12 17v.2"/>
+    </symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <path d="m7 9 3 3-3 3M13 15h4"/>
+    </symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24">
+      <path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>
+      <path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>
+    </symbol>
+    <symbol id="i-code" viewBox="0 0 24 24">
+      <path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/>
+    </symbol>
+    <symbol id="i-external" viewBox="0 0 24 24">
+      <path d="M14 4h6v6M20 4 11 13M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>
+    </symbol>
+    <symbol id="i-box" viewBox="0 0 24 24">
+      <path d="M4 7h16v13H4zM8 7V4h8v3M4 11h16"/>
+    </symbol>
+    <symbol id="i-print" viewBox="0 0 24 24">
+      <path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/>
+      <path d="M7 14h10v7H7z"/>
+    </symbol>
+  </svg>
+
+  <div class="ambient" aria-hidden="true">
+    <div class="ambient-glow ambient-glow-a"></div>
+    <div class="ambient-glow ambient-glow-b"></div>
+    <div class="ambient-grid"></div>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="ModScope 首页">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40">
+          <defs>
+            <linearGradient id="faceTop" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#d8ff9d"/><stop offset="1" stop-color="#9be35f"/>
+            </linearGradient>
+            <linearGradient id="faceLeft" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#5dbf54"/><stop offset="1" stop-color="#2b8c46"/>
+            </linearGradient>
+            <linearGradient id="faceRight" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#87dc68"/><stop offset="1" stop-color="#42a84b"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#faceTop)" d="M20 3 35 11.5 20 20 5 11.5Z"/>
+          <path fill="url(#faceLeft)" d="M5 11.5 20 20v17L5 28.5Z"/>
+          <path fill="url(#faceRight)" d="M35 11.5 20 20v17l15-8.5Z"/>
+          <path fill="#193a22" opacity=".32" d="M20 20 5 11.5v3L20 23Zm0 0 15-8.5v3L20 23Z"/>
+        </svg>
+      </span>
+      <span class="brand-copy">
+        <strong>ModScope</strong>
+        <span>MOD 冲突查找器</span>
+      </span>
+    </a>
+    <nav class="header-nav" aria-label="主导航">
+      <a href="#scanner" class="nav-link active">扫描器</a>
+      <button type="button" class="nav-link" data-open-help>支持范围</button>
+      <button type="button" class="nav-link" data-open-help>工作原理</button>
+    </nav>
+    <div class="header-actions">
+      <span class="local-pill"><span class="pulse-dot"></span>本地离线</span>
+      <button type="button" class="icon-button" id="themeToggle" aria-label="切换深浅色主题" title="切换主题">
+        <svg class="icon icon-sun"><use href="#i-sun"/></svg>
+        <svg class="icon icon-moon"><use href="#i-moon"/></svg>
+      </button>
+      <button type="button" class="icon-button" data-open-help aria-label="打开帮助" title="帮助">
+        <svg class="icon"><use href="#i-help"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section id="landing" class="landing" aria-labelledby="heroTitle">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow reveal-1">
+            <span class="eyebrow-line"></span>
+            MINECRAFT MOD CONFLICT SCANNER
+            <span class="version-tag">v1.0</span>
+          </div>
+          <h1 id="heroTitle" class="reveal-2">
+            让每一个 MOD<br>
+            <span class="hero-accent">安全同屏。</span>
+          </h1>
+          <p class="hero-description reveal-3">
+            扫描整个 <code>mods</code> 文件夹，定位缺失依赖、版本错配、加载器混装、
+            重复 ID、类覆盖与 Mixin 冲突。<br>
+            从 1.7.10 到最新版本，不启动游戏也能先做一次体检。
+          </p>
+          <div class="hero-badges reveal-4">
+            <span><svg class="icon"><use href="#i-layers"/></svg> 全加载器生态</span>
+            <span><svg class="icon"><use href="#i-code"/></svg> 静态依赖求解</span>
+            <span><svg class="icon"><use href="#i-shield"/></svg> 文件不出本机</span>
+          </div>
+        </div>
+
+        <div class="hero-visual reveal-3" aria-hidden="true">
+          <div class="orbit orbit-outer"></div>
+          <div class="orbit orbit-inner"></div>
+          <div class="orbit-dot dot-a"></div>
+          <div class="orbit-dot dot-b"></div>
+          <div class="voxel-stage">
+            <div class="voxel">
+              <span class="voxel-face voxel-top"></span>
+              <span class="voxel-face voxel-left"></span>
+              <span class="voxel-face voxel-right"></span>
+              <span class="voxel-scanline"></span>
+            </div>
+            <div class="voxel-shadow"></div>
+          </div>
+          <div class="orbit-chip chip-forge"><span class="chip-dot"></span>Forge</div>
+          <div class="orbit-chip chip-fabric"><span class="chip-dot"></span>Fabric</div>
+          <div class="orbit-chip chip-neo"><span class="chip-dot"></span>NeoForge</div>
+          <div class="orbit-chip chip-quilt"><span class="chip-dot"></span>Quilt</div>
+          <div class="orbit-chip chip-legacy"><span class="chip-dot"></span>Legacy</div>
+          <div class="orbit-status">
+            <span class="orbit-status-label">DEPENDENCY GRAPH</span>
+            <span class="orbit-status-value">READY <i></i></span>
+          </div>
+        </div>
+      </div>
+
+      <div id="scanner" class="scanner-shell reveal-4">
+        <div class="scanner-head">
+          <div>
+            <span class="section-kicker">SCAN WORKSPACE</span>
+            <h2>选择你的 MOD 文件夹</h2>
+          </div>
+          <span class="privacy-note"><svg class="icon"><use href="#i-shield"/></svg> 所有分析都在本机完成</span>
+        </div>
+
+        <div id="dropzone" class="dropzone" role="group" aria-label="MOD 文件选择区">
+          <input id="folderInput" type="file" webkitdirectory multiple hidden>
+          <input id="filesInput" type="file" multiple accept=".jar,.litemod,.disabled" hidden>
+          <div class="dropzone-grid" aria-hidden="true"></div>
+          <div class="drop-icon-wrap">
+            <svg class="icon drop-icon"><use href="#i-cube"/></svg>
+            <span class="drop-spark spark-1"></span>
+            <span class="drop-spark spark-2"></span>
+            <span class="drop-spark spark-3"></span>
+          </div>
+          <div class="drop-copy">
+            <strong>把 <code>mods</code> 文件夹拖到这里</strong>
+            <span>也支持一次选择多个 JAR / LiteLoader 文件</span>
+          </div>
+          <div class="drop-actions">
+            <button type="button" class="button primary" id="chooseFolderBtn">
+              <svg class="icon"><use href="#i-folder"/></svg> 选择文件夹
+            </button>
+            <button type="button" class="button ghost" id="chooseFilesBtn">
+              <svg class="icon"><use href="#i-file"/></svg> 选择文件
+            </button>
+          </div>
+          <div id="selectionChip" class="selection-chip" hidden>
+            <svg class="icon"><use href="#i-box"/></svg>
+            <span id="selectionText">已选择 0 个文件</span>
+            <button type="button" class="chip-remove" id="clearSelection" aria-label="清除已选文件">
+              <svg class="icon"><use href="#i-x"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="path-row">
+          <div class="path-label">
+            <svg class="icon"><use href="#i-terminal"/></svg>
+            <span>或扫描本机路径</span>
+            <small>大整合包推荐，不复制文件</small>
+          </div>
+          <div class="path-input-wrap">
+            <input id="pathInput" type="text" spellcheck="false" autocomplete="off"
+                   placeholder="例如 C:\Users\你\.minecraft\mods 或 /home/you/.minecraft/mods"
+                   aria-label="MOD 文件夹路径">
+            <button type="button" class="button small ghost path-pick" id="pickFolderBtn" title="在系统中选择文件夹">浏览</button>
+            <button type="button" class="button small path-pick primary-soft" id="scanPathBtn">扫描路径</button>
+          </div>
+        </div>
+
+        <div class="scan-options" aria-label="扫描选项">
+          <label class="field">
+            <span class="field-label">Minecraft 版本 <em>可选</em></span>
+            <span class="input-with-suffix">
+              <input id="mcVersion" type="text" list="mcVersions" autocomplete="off" placeholder="自动检测">
+              <span class="input-suffix">Java 版</span>
+            </span>
+            <datalist id="mcVersions">
+              <option value="1.21.5"></option><option value="1.21.4"></option>
+              <option value="1.21.1"></option><option value="1.20.6"></option>
+              <option value="1.20.4"></option><option value="1.20.1"></option>
+              <option value="1.19.2"></option><option value="1.18.2"></option>
+              <option value="1.16.5"></option><option value="1.12.2"></option>
+              <option value="1.7.10"></option>
+            </datalist>
+          </label>
+          <label class="field">
+            <span class="field-label">加载器</span>
+            <span class="select-wrap">
+              <select id="loaderSelect">
+                <option value="auto">自动检测</option>
+                <option value="forge">Forge</option>
+                <option value="neoforge">NeoForge</option>
+                <option value="fabric">Fabric</option>
+                <option value="quilt">Quilt</option>
+                <option value="liteloader">LiteLoader</option>
+              </select>
+              <svg class="icon"><use href="#i-chevron-down"/></svg>
+            </span>
+          </label>
+          <div class="field">
+            <span class="field-label">运行端</span>
+            <div class="segmented" id="sideSegmented" role="group" aria-label="运行端">
+              <button type="button" data-side="client" class="active">客户端</button>
+              <button type="button" data-side="server">服务端</button>
+            </div>
+          </div>
+          <label class="field">
+            <span class="field-label">Java 主版本 <em>可选</em></span>
+            <span class="input-with-suffix">
+              <input id="javaVersion" type="number" min="1" max="99" inputmode="numeric" placeholder="自动">
+              <span class="input-suffix">Java</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="scan-footer">
+          <div class="scan-toggles">
+            <label class="switch-row">
+              <input id="deepScan" type="checkbox" checked>
+              <span class="switch"></span>
+              <span>深度扫描 <small>类冲突 / Mixin / 命名空间</small></span>
+            </label>
+            <label class="switch-row">
+              <input id="includeDisabled" type="checkbox" checked>
+              <span class="switch"></span>
+              <span>包含已禁用文件 <small>.disabled</small></span>
+            </label>
+          </div>
+          <button type="button" class="button scan-button" id="startScanBtn" disabled>
+            <span class="button-text">开始分析</span>
+            <svg class="icon"><use href="#i-arrow-right"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="coverage-strip reveal-4" id="coverage">
+        <div class="coverage-item">
+          <span class="coverage-icon"><svg class="icon"><use href="#i-layers"/></svg></span>
+          <div><strong>7 种 MOD 元数据</strong><span>Forge / NeoForge / Fabric / Quilt / LiteLoader / Rift / 旧版</span></div>
+        </div>
+        <div class="coverage-item">
+          <span class="coverage-icon"><svg class="icon"><use href="#i-code"/></svg></span>
+          <div><strong>Maven + SemVer 求解</strong><span>同时理解 Fabric 谓词与 Quilt 版本语法</span></div>
+        </div>
+        <div class="coverage-item">
+          <span class="coverage-icon"><svg class="icon"><use href="#i-spark"/></svg></span>
+          <div><strong>类级冲突比对</strong><span>区分“同名不同实现”与无害的完全重复</span></div>
+        </div>
+        <div class="coverage-item">
+          <span class="coverage-icon"><svg class="icon"><use href="#i-shield"/></svg></span>
+          <div><strong>无需联网</strong><span>不上传 JAR，不启动游戏，不修改文件</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="scanning" class="scanning-view" hidden aria-live="polite">
+      <div class="scanning-card">
+        <div class="scanner-illustration">
+          <div class="scanner-rings"></div>
+          <div class="scanner-jar">
+            <span class="jar-lid"></span>
+            <span class="jar-body"><i></i><i></i><i></i></span>
+            <span class="jar-beam"></span>
+          </div>
+          <span class="scan-badge">ANALYZING</span>
+        </div>
+        <p class="section-kicker">STATIC ANALYSIS IN PROGRESS</p>
+        <h2 id="scanningTitle">正在拆解 MOD 包…</h2>
+        <p id="scanningSubtitle" class="scanning-subtitle">读取元数据、构建依赖图、比对类文件。</p>
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+        <div class="progress-meta">
+          <span id="progressText">准备中</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="scan-phases" id="scanPhases">
+          <span class="phase active" data-phase="0"><i></i>读取 JAR 索引</span>
+          <span class="phase" data-phase="1"><i></i>解析 MOD 元数据</span>
+          <span class="phase" data-phase="2"><i></i>求解依赖与版本</span>
+          <span class="phase" data-phase="3"><i></i>检查类与 Mixin</span>
+        </div>
+        <button type="button" class="button ghost cancel-scan" id="cancelScanBtn">取消扫描</button>
+      </div>
+    </section>
+
+    <section id="report" class="report-view" hidden aria-live="polite">
+      <div class="report-chrome">
+        <div class="report-topline">
+          <button type="button" class="back-link" id="rescanBtn">
+            <svg class="icon"><use href="#i-refresh"/></svg> 重新扫描
+          </button>
+          <span class="report-source" id="reportSource">—</span>
+          <div class="report-actions">
+            <button type="button" class="button small ghost" id="copySummaryBtn">
+              <svg class="icon"><use href="#i-copy"/></svg> 复制结论
+            </button>
+            <button type="button" class="button small ghost" id="printBtn">
+              <svg class="icon"><use href="#i-print"/></svg> 打印 / PDF
+            </button>
+            <div class="export-wrap">
+              <button type="button" class="button small primary-soft" id="exportBtn" aria-haspopup="true" aria-expanded="false">
+                <svg class="icon"><use href="#i-download"/></svg> 导出报告
+                <svg class="icon chevron"><use href="#i-chevron-down"/></svg>
+              </button>
+              <div class="export-menu" id="exportMenu" hidden>
+                <button type="button" data-export="json"><span>JSON</span><small>完整结构化数据</small></button>
+                <button type="button" data-export="markdown"><span>Markdown</span><small>便于分享和归档</small></button>
+                <button type="button" data-export="print"><span>打印 / PDF</span><small>完整诊断报告</small></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-hero">
+        <div class="score-block">
+          <div class="score-ring" id="scoreRing" style="--score: 0">
+            <div class="score-inner">
+              <span id="scoreValue">0</span>
+              <small>/ 100</small>
+            </div>
+          </div>
+          <div class="score-caption">
+            <span>HEALTH SCORE</span>
+            <strong id="gradeLabel">等待扫描</strong>
+          </div>
+        </div>
+        <div class="report-headline">
+          <div class="report-eyebrow"><span class="live-dot"></span> 扫描完成 <span id="scanDuration">· 0.0s</span></div>
+          <h2 id="reportHeadline">扫描结果</h2>
+          <div class="report-meta" id="reportMeta"></div>
+        </div>
+        <div class="report-counts" id="reportCounts" aria-label="问题数量概览"></div>
+      </div>
+
+      <div class="quick-stats" id="quickStats"></div>
+
+      <div class="tabs" role="tablist" aria-label="报告视图">
+        <button type="button" class="tab active" role="tab" aria-selected="true" data-tab="findings" id="tabFindings">
+          <svg class="icon"><use href="#i-alert"/></svg> 诊断报告 <span class="tab-count" id="tabFindingCount">0</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="mods" id="tabMods">
+          <svg class="icon"><use href="#i-cube"/></svg> MOD 清单 <span class="tab-count" id="tabModCount">0</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="details" id="tabDetails">
+          <svg class="icon"><use href="#i-layers"/></svg> 扫描详情
+        </button>
+      </div>
+
+      <div class="tab-panel" id="panelFindings" role="tabpanel" aria-labelledby="tabFindings">
+        <div class="findings-layout">
+          <aside class="filter-rail" aria-label="筛选诊断结果">
+            <div class="rail-section">
+              <span class="rail-title">严重程度</span>
+              <div class="filter-list" id="severityFilters"></div>
+            </div>
+            <div class="rail-section">
+              <span class="rail-title">问题类别</span>
+              <div class="filter-list" id="categoryFilters"></div>
+            </div>
+            <div class="rail-note">
+              <svg class="icon"><use href="#i-shield"/></svg>
+              <p>静态扫描无法覆盖所有运行时交互。请结合实际启动日志确认。</p>
+            </div>
+          </aside>
+          <div class="findings-main">
+            <div class="findings-toolbar">
+              <label class="search-box">
+                <svg class="icon"><use href="#i-search"/></svg>
+                <input id="findingSearch" type="search" placeholder="搜索问题、MOD ID 或文件名…" autocomplete="off" aria-label="搜索诊断结果">
+              </label>
+              <span class="result-count" id="resultCount">0 条结果</span>
+            </div>
+            <div id="findingsList" class="findings-list"></div>
+            <div id="findingsEmpty" class="empty-state" hidden>
+              <span class="empty-icon"><svg class="icon"><use href="#i-search"/></svg></span>
+              <h3>没有匹配的结果</h3>
+              <p>试试清除搜索词或切换筛选条件。</p>
+              <button type="button" class="button small ghost" id="clearFiltersBtn">清除筛选</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panelMods" role="tabpanel" aria-labelledby="tabMods" hidden>
+        <div class="mods-toolbar">
+          <label class="search-box">
+            <svg class="icon"><use href="#i-search"/></svg>
+            <input id="modSearch" type="search" placeholder="搜索 MOD 名称、ID 或文件…" autocomplete="off" aria-label="搜索 MOD">
+          </label>
+          <div class="segmented compact" id="modStatusFilter" role="group" aria-label="MOD 状态">
+            <button type="button" data-status="active" class="active">启用</button>
+            <button type="button" data-status="disabled">已禁用</button>
+            <button type="button" data-status="nested">内置</button>
+            <button type="button" data-status="all">全部</button>
+          </div>
+          <span class="result-count" id="modResultCount">0 个 MOD</span>
+        </div>
+        <div class="table-shell">
+          <table class="mods-table">
+            <thead>
+              <tr>
+                <th scope="col">MOD</th>
+                <th scope="col">版本</th>
+                <th scope="col">加载器</th>
+                <th scope="col">Minecraft</th>
+                <th scope="col">Java</th>
+                <th scope="col">状态</th>
+              </tr>
+            </thead>
+            <tbody id="modsTableBody"></tbody>
+          </table>
+          <div id="modsEmpty" class="empty-state small" hidden>
+            <h3>没有匹配的 MOD</h3>
+            <p>调整搜索词或状态筛选后再试。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panelDetails" role="tabpanel" aria-labelledby="tabDetails" hidden>
+        <div class="details-grid" id="detailsGrid"></div>
+        <div class="details-card">
+          <div class="card-heading">
+            <div>
+              <span class="section-kicker">FILE INVENTORY</span>
+              <h3>JAR 文件清单</h3>
+            </div>
+            <span class="muted" id="jarCountLabel"></span>
+          </div>
+          <div class="table-shell">
+            <table class="jars-table">
+              <thead>
+                <tr>
+                  <th scope="col">文件</th>
+                  <th scope="col">识别结果</th>
+                  <th scope="col">类文件</th>
+                  <th scope="col">Java</th>
+                  <th scope="col">状态</th>
+                </tr>
+              </thead>
+              <tbody id="jarsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="details-card caveats-card">
+          <div class="card-heading">
+            <div>
+              <span class="section-kicker">METHODOLOGY</span>
+              <h3>检查边界与说明</h3>
+            </div>
+          </div>
+          <ul class="caveats-list" id="caveatsList"></ul>
+        </div>
+      </div>
+
+      <div class="report-footer">
+        <span>报告生成于 <span id="generatedAt">—</span></span>
+        <span>ModScope v1.0 · 非官方工具</span>
+      </div>
+    </section>
+
+    <section id="printReport" class="print-report" aria-hidden="true"></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <span class="brand-mark small" aria-hidden="true">
+        <svg viewBox="0 0 40 40"><path fill="#b7f26d" d="M20 3 35 11.5 20 20 5 11.5Z"/><path fill="#3d9c4c" d="M5 11.5 20 20v17L5 28.5Z"/><path fill="#72ce5d" d="M35 11.5 20 20v17l15-8.5Z"/></svg>
+      </span>
+      <div><strong>ModScope</strong><span>为整合包做一次启动前体检。</span></div>
+    </div>
+    <p>非 Minecraft 官方产品，与 Mojang / Microsoft 无关联。不会修改你的 MOD 文件。</p>
+    <button type="button" class="text-button" data-open-help>支持格式与限制</button>
+  </footer>
+
+  <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
+    <div class="dialog-head">
+      <div>
+        <span class="section-kicker">FIELD GUIDE</span>
+        <h2 id="helpTitle">ModScope 快速说明</h2>
+      </div>
+      <button type="button" class="icon-button" id="closeHelp" aria-label="关闭帮助">
+        <svg class="icon"><use href="#i-x"/></svg>
+      </button>
+    </div>
+    <div class="dialog-body">
+      <div class="help-grid">
+        <section>
+          <h3>它检查什么</h3>
+          <ul class="check-list">
+            <li>缺失的必需依赖、依赖版本不满足</li>
+            <li>Minecraft / Java / 加载器不匹配</li>
+            <li>重复 MOD ID、重复 JAR、内置 JAR 重名</li>
+            <li>MOD 元数据声明的互斥关系</li>
+            <li>同名类覆盖、Mixin 配置 / refmap 重名</li>
+            <li>资源命名空间重叠与文件损坏</li>
+          </ul>
+        </section>
+        <section>
+          <h3>支持的元数据</h3>
+          <div class="format-grid">
+            <span>fabric.mod.json</span><span>quilt.mod.json</span>
+            <span>META-INF/mods.toml</span><span>neoforge.mods.toml</span>
+            <span>mcmod.info</span><span>litemod.json</span>
+            <span>riftmod.json</span><span>MANIFEST.MF 推断</span>
+          </div>
+        </section>
+      </div>
+      <section class="help-section">
+        <h3>怎么得到最准确的结果</h3>
+        <ol class="steps-list">
+          <li><strong>选择正确的 mods 文件夹。</strong>只扫描第一层文件；子文件夹中的 JAR 不会被游戏加载。</li>
+          <li><strong>填写 Minecraft 版本。</strong>留空时仍会检查各 MOD 声明的版本约束是否有交集，但不会逐个比对目标版本。</li>
+          <li><strong>选择实际加载器。</strong>自动检测会以出现次数最多的加载器生态为准。</li>
+          <li><strong>深度扫描建议开启。</strong>它会比对 class 与 Mixin，但大整合包会多花几秒钟。</li>
+        </ol>
+      </section>
+      <section class="help-section warning-section">
+        <h3>不能保证什么</h3>
+        <p>这是一款静态分析工具。它不会启动游戏，也不会读取运行时日志，因此无法可靠判断所有事件优先级、Mixin 注入点重叠、配方覆盖或配置项冲突。元数据写错、动态注册冲突仍需结合实际启动日志排查。</p>
+      </section>
+      <section class="help-section">
+        <h3>命令行</h3>
+        <p>同样支持终端扫描与导出：</p>
+        <code class="code-block">python app.py scan "C:\...\mods" --mc 1.20.1 --loader forge --markdown report.md</code>
+      </section>
+    </div>
+  </dialog>
+
+  <div id="toastRegion" class="toast-region" aria-live="assertive" aria-atomic="true"></div>
+</body>
+</html>
