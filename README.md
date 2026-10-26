@@ -239,5 +239,3 @@ app.py → models.py → 跟一条“缺失依赖” → tests/test_analyzer.py 
 本项目使用 [MIT License](LICENSE)。第三方工具声明：ModScope 与 Mojang / Microsoft 无关联。
 
 ---
-
-ModScope v1.0 · 为整合包做一次启动前体检。
